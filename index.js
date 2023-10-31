@@ -1,5 +1,7 @@
 const cheerio = require('cheerio');
 const {gotScraping} = require('got-scraping')
+const {parse} = require('json2csv')
+const fs = require('fs')
 
 const url = 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=Egypt&locationId=&geoId=106155005&f_TPR=r86400&position=1&pageNum=0'
 const scrape = async ()=> {
@@ -17,7 +19,7 @@ const scrape = async ()=> {
     // it takes a string or an object the string for selection and the object for turning into a selection object so it turns both to a selection 
     // so that you can access Cheerio methods like text().
     // The text() method is a function provided by Cheerio to extract the text content from the selected element.
-    const jobs = {}
+    const jobs = []
     cards.each((index, card) => {
         const titleSelection = $(card).find('.base-search-card__title')
         const titleText = titleSelection.text().split('\n').join('').trim()
@@ -26,15 +28,18 @@ const scrape = async ()=> {
         const companyText = companySelection.text().split('\n').join('').trim()
 
         if(titleText && companyText){
-            jobs[index] = {
+            jobs.push({
                 title: titleText,
                 company: companyText
-            }
+            })
         }
 
     })
 
-    console.log(jobs)
+    const csvJobs = parse(jobs)
+    console.dir(csvJobs[30])
+
+    fs.writeFileSync('jobs.csv', csvJobs)
 }
 // base-search-card__title
 
