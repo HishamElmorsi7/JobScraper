@@ -1,28 +1,65 @@
 const cheerio = require('cheerio')
 const {gotScraping} = require('got-scraping')
-
+const websiteUrl = 'https://www.linkedin.com'
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-  }
+}
+
+const urls = [
+    {
+        country: 'Egypt',
+        url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=Egypt&locationId=&geoId=106155005&f_TPR=r86400&position=1&pageNum=0'
+    },
+    {
+        country: 'Egypt',
+        url: 'https://www.linkedin.com/jobs/search?keywords=Software%20Developer&location=Egypt&locationId=&geoId=106155005&f_TPR=r86400&position=1&pageNum=0'
+    },
+    {
+        country:'Saudi',
+        url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=Saudi%20Arabia&locationId=&geoId=100459316&f_TPR=r86400&position=1&pageNum=0'
+    },
 
 
-const country = 'Egypt'
-const websiteUrl = 'https://www.linkedin.com'
-const jobSearchUrl = `${websiteUrl}/jobs/search`
-const filterJobsUrl = `${jobSearchUrl}?location=Egypt&geoId=106155005&locationId=&keywords=Back%20End%20Developer&f_TPR=r86400&countryRedirected=1&position=1&pageNum=0`
+    {
+        country:'emirates',
+        url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=United%20Arab%20Emirates&locationId=&geoId=104305776&f_TPR=r86400&position=1&pageNum=0' 
+    }
+]
+
+const scrapeAllLinks = async ()=> {
+    let jobs = []
+    let notFoundjobs = []
+
+    for (let countryUrl of urls) {
+        const {scrapedJobs, notScrapedJobs} = await scrapeJobs(countryUrl)
+        jobs.push(scrapedJobs)
+        notFoundjobs.push(notScrapedJobs)
+    }
+
+    jobs = jobs.flat()
+    notFoundjobs = notFoundjobs.flat()
+
+    console.log('Found Jobs', jobs.length)
+    console.log('\n\n\n\n\n\n\n\n\n\n')
+    console.log('NotFound Jobs', notFoundjobs.length)
+
+}
+
+    
+const scrapeJobs = async(countryUrl)=>{
+
+    const country = countryUrl.country
+    const url = countryUrl.url
 
 
-const scrapeJobs = async()=>{
-
-    const jobsPageResponse = await gotScraping(filterJobsUrl)
+    const jobsPageResponse = await gotScraping(url)
     const jobsPageHtml = jobsPageResponse.body    
     const $ = cheerio.load(jobsPageHtml)
 
-    // To get only a tags that has href attribut
     const links = $("a[class^='base-card']")
-
     const jobsUrls = []
+
     links.each((index, link) => {
         // using $ here turns the link into a selection object to be able to use cheerio methods on
         const url = $(link).attr('href')
@@ -31,12 +68,13 @@ const scrapeJobs = async()=>{
         jobsUrls.push(absoluteUrl)
     })
 
-    let {scrapedJobs, notScrapedJobs} = await scrapeFromUrls(jobsUrls)
+    console.log(`No.urls in ${country}= ${jobsUrls.length}`)
+    let {scrapedJobs, notScrapedJobs} = await scrapeFromUrls(jobsUrls, country)
     let i = 0
 
     while(i < 3 ) {
 
-        result = await scrapeFromUrls(notScrapedJobs)
+        result = await scrapeFromUrls(notScrapedJobs, country)
 
         scrapedJobs = [...scrapedJobs, ...result.scrapedJobs ]
         notScrapedJobs = result.notScrapedJobs
@@ -45,18 +83,12 @@ const scrapeJobs = async()=>{
         
     }
 
-    console.log('Starting point URL for other urls', filterJobsUrl)
-    console.log('\n')
-    console.log('No.originalUrls', jobsUrls.length)
-    console.log('\n')
-    console.log(`No.notScraped = ${scrapedJobs.length}, No.Scraped = ${notScrapedJobs.length}`)
-    console.log('\n')
-    console.log(scrapedJobs)
+    return {scrapedJobs, notScrapedJobs}
 
 }
 
 
-const scrapeFromUrls= async (jobsUrls) => {
+const scrapeFromUrls= async (jobsUrls, country) => {
 
     const notScrapedJobs = []
     const scrapedJobs = []
@@ -75,8 +107,9 @@ const scrapeFromUrls= async (jobsUrls) => {
                 // .html returns null when non existing but text returns ''
                 const description = $jobPage('.description__text .show-more-less-html__markup').html().trim().split('\n').join('')
                 let level = $jobPage('ul.description__job-criteria-list').contents().eq(1).contents().eq(3).text().trim()
+                const link = jobUrl
 
-                
+
                 if(level === 'مستوى المبتدئين'){
                     level = 'junior'
                 } else if( level === 'مستوى متوسط الأقدمية'){
@@ -95,7 +128,8 @@ const scrapeFromUrls= async (jobsUrls) => {
                     company,
                     country,
                     description,
-                    level
+                    level,
+                    link
 
                 }
 
@@ -125,4 +159,4 @@ const scrapeFromUrls= async (jobsUrls) => {
 
 
 
-scrapeJobs()
+scrapeAllLinks()
