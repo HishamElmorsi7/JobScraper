@@ -1,6 +1,7 @@
 const cheerio = require('cheerio')
 const {gotScraping} = require('got-scraping')
 const websiteUrl = 'https://www.linkedin.com'
+const fs = require('fs')
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -27,7 +28,29 @@ const urls = [
     }
 ]
 
+let urlsCount = 0
+let linksRepititions = 0
+let scrapedUrls = []
+let scrapedJobx = []
+let notBackendJobs = []
+
+
+const isUrlScraped = (url)=> {
+    return scrapedUrls.includes(url)
+}
+
+const saveScrapedUrl = (url) => {
+    scrapedUrls.push(url);
+    fs.writeFileSync('scraped_url.json', JSON.stringify(scrapedUrls, null, 2), 'utf8')
+}
+
+const saveScrapedJobs = (job) => {
+    scrapedJobx.push(job);
+    fs.writeFileSync('scraped_jobs.json', JSON.stringify(scrapedJobx, null, 2), 'utf8')
+}
+
 const scrapeAllLinks = async ()=> {
+    console.log('OOOOOOOOOOOOOOOO')
     let jobs = []
     let notFoundjobs = []
 
@@ -40,13 +63,14 @@ const scrapeAllLinks = async ()=> {
     jobs = jobs.flat()
     notFoundjobs = notFoundjobs.flat()
 
+
+    console.log(`Final Scraped Jobs = ${urlsCount}(Total Urls Count) - [ ${notFoundjobs.length}(Couldn't Scrap) + ${linksRepititions}(jobsRepititions) - ${notBackendJobs.length}(notBackendJobs) ]`)
+    // Scraped this time
     console.log('Found Jobs', jobs.length)
-    console.log('\n\n\n\n\n\n\n\n\n\n')
-    console.log('NotFound Jobs', notFoundjobs.length)
-
+    // jobx for total
+    console.log('Jobx', scrapedJobx.length)
 }
-
-    
+   
 const scrapeJobs = async(countryUrl)=>{
 
     const country = countryUrl.country
@@ -68,6 +92,8 @@ const scrapeJobs = async(countryUrl)=>{
         jobsUrls.push(absoluteUrl)
     })
 
+    urlsCount = urlsCount + jobsUrls.length
+    
     console.log(`No.urls in ${country}= ${jobsUrls.length}`)
     let {scrapedJobs, notScrapedJobs} = await scrapeFromUrls(jobsUrls, country)
     let i = 0
@@ -87,12 +113,18 @@ const scrapeJobs = async(countryUrl)=>{
 
 }
 
-
 const scrapeFromUrls= async (jobsUrls, country) => {
+
 
     const notScrapedJobs = []
     const scrapedJobs = []
-    for(const jobUrl of jobsUrls){   
+    for(const jobUrl of jobsUrls){
+        
+        if(isUrlScraped(jobUrl.split('?')[0])) {
+            // console.log(`Skipping already scraped URL: ${jobUrl}, ${xxx}`);
+            linksRepititions += 1
+            continue;
+        }
 
             const productResponse = await gotScraping(jobUrl);
             const jobHtml = productResponse.body;
@@ -107,7 +139,7 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                 // .html returns null when non existing but text returns ''
                 const description = $jobPage('.description__text .show-more-less-html__markup').html().trim().split('\n').join('')
                 let level = $jobPage('ul.description__job-criteria-list').contents().eq(1).contents().eq(3).text().trim()
-                const link = jobUrl
+                const link = jobUrl.split('?')[0]
 
 
                 if(level === 'مستوى المبتدئين'){
@@ -126,20 +158,31 @@ const scrapeFromUrls= async (jobsUrls, country) => {
 
                     title,
                     company,
-                    country,
+                    location: country,
                     description,
                     level,
-                    link
+                    application: link,
+                    email: '',
+                    website: '',
+                    workplace_typ: 'other',
+                    tech: 'other'
+                    
 
                 }
-
                 
 
                 if (title == '' || company == '' || country == '' || description == '' || level == ''){
                     throw new Error('Some field lost')
                 }
+                else if(title.toLowerCase().includes('front') || title.toLowerCase().includes('full') || title.toLowerCase.includes('scien')) {
+                    notBackendJobs.push(job)
+                }
                 else {
+
                     scrapedJobs.push(job)
+
+                    saveScrapedJobs(job)
+                    saveScrapedUrl(link)
                 }
 
                 await sleep(1000)
@@ -157,6 +200,24 @@ const scrapeFromUrls= async (jobsUrls, country) => {
 
 }
 
+try {
 
+    if(fs.existsSync('scraped_url.json')) {
+        console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+        let data = fs.readFileSync('scraped_url.json', 'utf8')
+        scrapedUrls = JSON.parse(data)
 
-scrapeAllLinks()
+        data = fs.readFileSync('scraped_jobs.json', 'utf8')
+        scrapedJobx = JSON.parse(data)
+        
+
+        console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+    }
+
+    scrapeAllLinks()
+
+} catch(err) {
+    // console.log(err)
+    console.log('Something went wrong when reading scraped_url.json file')
+}
+
