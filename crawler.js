@@ -10,25 +10,33 @@ function sleep(ms) {
 
 const urls = [
     {
-        country: 'Egypt',
+        country: '🇪🇬 Egypt',
         url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=Egypt&locationId=&geoId=106155005&f_TPR=r86400&position=1&pageNum=0'
     }
-    // ,
-    // {
-    //     country: 'Egypt',
-    //     url: 'https://www.linkedin.com/jobs/search?keywords=Software%20Developer&location=Egypt&locationId=&geoId=106155005&f_TPR=r86400&position=1&pageNum=0'
-    // }
-    // ,
-    // {
-    //     country:'Saudi Arabia',
-    //     url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=Saudi%20Arabia&locationId=&geoId=100459316&f_TPR=r86400&position=1&pageNum=0'
-    // },
+    ,
+    {
+        country: '🇪🇬 Egypt',
+        url: 'https://www.linkedin.com/jobs/search?keywords=Software%20Developer&location=Egypt&locationId=&geoId=106155005&f_TPR=r86400&position=1&pageNum=0'
+    }
+    ,
+    {
+        country:'🇸🇦 Saudi Arabia',
+        url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=Saudi%20Arabia&locationId=&geoId=100459316&f_TPR=r86400&position=1&pageNum=0'
+    },
+    {
+        country:'🇦🇪 United Arab Emirates',
+        url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=United%20Arab%20Emirates&locationId=&geoId=104305776&f_TPR=r86400&position=1&pageNum=0' 
+    },
+    {
+        country:'🇰🇼 Kuwait',
+        url: 'https://www.linkedin.com/jobs/search?keywords=Software%20Developer&location=Kuwait&locationId=&geoId=103239229&f_TPR=r86400&position=1&pageNum=0' 
+    },
+    {
+        country:'🇶🇦 Qatar',
+        url: 'https://www.linkedin.com/jobs/search?keywords=Software%20Developer&location=Qatar&locationId=&geoId=104170880&f_TPR=r86400&original_referer=https%3A%2F%2Fwww.linkedin.com%2Fjobs%2Fsearch%3Fkeywords%3DSoftware%2520Developer%26location%3DQatar%26geoId%3D104170880%26trk%3Dpublic_jobs_jobs-search-bar_search-submit%26position%3D1%26pageNum%3D0&position=1&pageNum=0' 
+    }
 
-
-    // {
-    //     country:'emirates',
-    //     url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=United%20Arab%20Emirates&locationId=&geoId=104305776&f_TPR=r86400&position=1&pageNum=0' 
-    // }
+    
 ]
 
 let urlsCount = 0
@@ -69,7 +77,7 @@ const scrapeAllLinks = async ()=> {
     notFoundjobs = notFoundjobs.flat()
 
 
-    console.log(`Final Scraped Jobs = ${urlsCount}(Total Urls Count) - [ ${notFoundjobs.length}(Couldn't Scrap) + ${linksRepititions}(jobsRepititions) - ${notBackendJobs.length}(notBackendJobs) ]`)
+    console.log(`Final Scraped Jobs = ${urlsCount}(Total Urls Count) - [ ${notFoundjobs.length}(Couldn't Scrap) + ${linksRepititions}(jobsRepititions) + ${notBackendJobs.length}(notBackendJobs) ]`)
     // Scraped this time
     console.log('Found Jobs', newJobs.length)
     // jobx for total
@@ -170,7 +178,8 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                     email: 'x@gmail.com',
                     website: '',
                     workplace_type: 'other',
-                    tech: 'other'
+                    tech: 'other',
+                    revised: true
                     
 
                 }
@@ -179,7 +188,7 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                 if (title == '' || company == '' || country == '' || description == '' || level == ''){
                     throw new Error('Some field lost')
                 }
-                else if(title.toLowerCase().includes('front') || title.toLowerCase().includes('full') || title.toLowerCase().includes('scien')) {
+                else if(title.toLowerCase().includes('front') || title.toLowerCase().includes('full') || title.toLowerCase().includes('scien') || title.toLowerCase().includes('scien') || title.toLowerCase().includes('vision') || title.toLowerCase().includes('machine') || title.toLowerCase().includes('embedded') || title.toLowerCase().includes('android') || title.toLowerCase().includes('ios') || title.toLowerCase().includes('react') || title.toLowerCase().includes('product') || title.toLowerCase().includes('devops') || title.toLowerCase().includes('design') || company.toLowerCase().includes('crossover') || company.toLowerCase().includes('talent pal') || company.toLowerCase().includes('canonical') ) {
                     notBackendJobs.push(job)
                 }
                 else {
@@ -208,6 +217,7 @@ const scrapeFromUrls= async (jobsUrls, country) => {
 
 const crawl = async ()=> {
     try {
+        initialize()
 
         if(fs.existsSync('scraped_url.json')) {
             console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
@@ -229,6 +239,14 @@ const crawl = async ()=> {
         console.log('Something went wrong when reading scraped_url.json file')
     }
     
+
+}
+
+const initialize = () => {
+    linksRepititions = 0
+    urlsCount = 0
+    notBackendJobs = []
+
 
 }
 

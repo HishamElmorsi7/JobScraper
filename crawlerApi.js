@@ -4,7 +4,6 @@ const app = express()
 const crawl = require('./crawler.js')
 const PORT = process.env.PORT || 3000;
 
-
 app.use(bodyParser.json())
 
 app.get('/jobs', async (req, res) => {
