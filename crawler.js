@@ -1,3 +1,4 @@
+// Handle global variables because they keep their value
 const cheerio = require('cheerio')
 const {gotScraping} = require('got-scraping')
 const websiteUrl = 'https://www.linkedin.com'
@@ -11,27 +12,31 @@ const urls = [
     {
         country: 'Egypt',
         url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=Egypt&locationId=&geoId=106155005&f_TPR=r86400&position=1&pageNum=0'
-    },
-    {
-        country: 'Egypt',
-        url: 'https://www.linkedin.com/jobs/search?keywords=Software%20Developer&location=Egypt&locationId=&geoId=106155005&f_TPR=r86400&position=1&pageNum=0'
-    },
-    {
-        country:'Saudi',
-        url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=Saudi%20Arabia&locationId=&geoId=100459316&f_TPR=r86400&position=1&pageNum=0'
-    },
-
-
-    {
-        country:'emirates',
-        url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=United%20Arab%20Emirates&locationId=&geoId=104305776&f_TPR=r86400&position=1&pageNum=0' 
     }
+    // ,
+    // {
+    //     country: 'Egypt',
+    //     url: 'https://www.linkedin.com/jobs/search?keywords=Software%20Developer&location=Egypt&locationId=&geoId=106155005&f_TPR=r86400&position=1&pageNum=0'
+    // }
+    // ,
+    // {
+    //     country:'Saudi Arabia',
+    //     url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=Saudi%20Arabia&locationId=&geoId=100459316&f_TPR=r86400&position=1&pageNum=0'
+    // },
+
+
+    // {
+    //     country:'emirates',
+    //     url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=United%20Arab%20Emirates&locationId=&geoId=104305776&f_TPR=r86400&position=1&pageNum=0' 
+    // }
 ]
 
 let urlsCount = 0
 let linksRepititions = 0
 let scrapedUrls = []
+// All scrapedJobs from the file in addition to the scraped from this iteration
 let scrapedJobx = []
+// new foundJobs
 let notBackendJobs = []
 
 
@@ -51,24 +56,26 @@ const saveScrapedJobs = (job) => {
 
 const scrapeAllLinks = async ()=> {
     console.log('OOOOOOOOOOOOOOOO')
-    let jobs = []
     let notFoundjobs = []
+    let newJobs = []
 
     for (let countryUrl of urls) {
         const {scrapedJobs, notScrapedJobs} = await scrapeJobs(countryUrl)
-        jobs.push(scrapedJobs)
+        newJobs.push(scrapedJobs)
         notFoundjobs.push(notScrapedJobs)
     }
 
-    jobs = jobs.flat()
+    newJobs = newJobs.flat()
     notFoundjobs = notFoundjobs.flat()
 
 
     console.log(`Final Scraped Jobs = ${urlsCount}(Total Urls Count) - [ ${notFoundjobs.length}(Couldn't Scrap) + ${linksRepititions}(jobsRepititions) - ${notBackendJobs.length}(notBackendJobs) ]`)
     // Scraped this time
-    console.log('Found Jobs', jobs.length)
+    console.log('Found Jobs', newJobs.length)
     // jobx for total
     console.log('Jobx', scrapedJobx.length)
+    return newJobs
+
 }
    
 const scrapeJobs = async(countryUrl)=>{
@@ -148,9 +155,7 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                     level = 'mid-level'
                 }  else if(level === 'فترة تدريب'){
                     level = 'intern'
-                } else if(level === 'مدير إداري'){
-                    level = 'lead'
-                } else if( level === 'غير مطبق'  || level === 'مساعد' || level === ''){
+                } else if( level === 'غير مطبق'  || level === 'مساعد' || level === '' || level === 'مدير إداري'){
                     level = 'other'
                 } 
 
@@ -162,9 +167,9 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                     description,
                     level,
                     application: link,
-                    email: '',
+                    email: 'x@gmail.com',
                     website: '',
-                    workplace_typ: 'other',
+                    workplace_type: 'other',
                     tech: 'other'
                     
 
@@ -174,7 +179,7 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                 if (title == '' || company == '' || country == '' || description == '' || level == ''){
                     throw new Error('Some field lost')
                 }
-                else if(title.toLowerCase().includes('front') || title.toLowerCase().includes('full') || title.toLowerCase.includes('scien')) {
+                else if(title.toLowerCase().includes('front') || title.toLowerCase().includes('full') || title.toLowerCase().includes('scien')) {
                     notBackendJobs.push(job)
                 }
                 else {
@@ -200,24 +205,31 @@ const scrapeFromUrls= async (jobsUrls, country) => {
 
 }
 
-try {
 
-    if(fs.existsSync('scraped_url.json')) {
-        console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-        let data = fs.readFileSync('scraped_url.json', 'utf8')
-        scrapedUrls = JSON.parse(data)
+const crawl = async ()=> {
+    try {
 
-        data = fs.readFileSync('scraped_jobs.json', 'utf8')
-        scrapedJobx = JSON.parse(data)
-        
-
-        console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+        if(fs.existsSync('scraped_url.json')) {
+            console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+            let data = fs.readFileSync('scraped_url.json', 'utf8')
+            scrapedUrls = JSON.parse(data)
+    
+            data = fs.readFileSync('scraped_jobs.json', 'utf8')
+            scrapedJobx = JSON.parse(data)
+            
+    
+            console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+        }
+    
+        const newJobs = await scrapeAllLinks()
+        return newJobs
+    
+    } catch(err) {
+        // console.log(err)
+        console.log('Something went wrong when reading scraped_url.json file')
     }
+    
 
-    scrapeAllLinks()
-
-} catch(err) {
-    // console.log(err)
-    console.log('Something went wrong when reading scraped_url.json file')
 }
 
+module.exports = crawl
