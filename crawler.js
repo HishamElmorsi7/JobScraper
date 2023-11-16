@@ -128,11 +128,36 @@ const scrapeJobs = async(countryUrl)=>{
 
 }
 
+const isBackendJob = (title) => {
+
+    const notBackKeywords =
+    [
+    'system', 'automation', 'process', 'statistic',
+    'autosar', 'flutter', 'cloud', 'utility', 'epc',
+    'firmware', 'quality', 'business', 'security',
+    'mobile', 'application', 'front', 'full', 'scien', 'vision',
+    'machine', 'embedded', 'android', 'ios',
+    'react', 'product', 'devops', 'artificial', 'mobile', 'angular', 'qc', 'design' 
+    ]
+
+    const lowercaseTitle = title.toLowerCase()
+
+    const hasBackendKeyword = notBackKeywords.some( keyword => lowercaseTitle.includes(keyword))
+
+    return !hasBackendKeyword
+
+}
+
+
+console.log(isBackendJob('this isfrontend developer'))
+
 const scrapeFromUrls= async (jobsUrls, country) => {
 
 
     const notScrapedJobs = []
     const scrapedJobs = []
+
+
     for(const jobUrl of jobsUrls){
         
         if(isUrlScraped(jobUrl.split('?')[0])) {
@@ -183,12 +208,11 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                     
 
                 }
-                
 
                 if (title == '' || company == '' || country == '' || description == '' || level == ''){
                     throw new Error('Some field lost')
                 }
-                else if(title.toLowerCase().includes('front') || title.toLowerCase().includes('full') || title.toLowerCase().includes('scien') || title.toLowerCase().includes('scien') || title.toLowerCase().includes('vision') || title.toLowerCase().includes('machine') || title.toLowerCase().includes('embedded') || title.toLowerCase().includes('android') || title.toLowerCase().includes('ios') || title.toLowerCase().includes('react') || title.toLowerCase().includes('product') || title.toLowerCase().includes('devops') || title.toLowerCase().includes('design') || company.toLowerCase().includes('crossover') || company.toLowerCase().includes('talent pal') || company.toLowerCase().includes('canonical') ) {
+                else if(!isBackendJob(title) || company.toLowerCase().includes('crossover') || company.toLowerCase().includes('talent pal') || company.toLowerCase().includes('canonical') ) {
                     notBackendJobs.push(job)
                 }
                 else {
