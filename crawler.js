@@ -63,7 +63,7 @@ const saveScrapedJobs = (job) => {
 }
 
 const scrapeAllLinks = async ()=> {
-    console.log('OOOOOOOOOOOOOOOO')
+    console.log('OOO')
     let notFoundjobs = []
     let newJobs = []
 
@@ -160,7 +160,8 @@ const isDesiredCompany = (company) => {
 
 }
 
-const categorizeJob = (description) => {
+const checkTechKeyword = (field) => {
+
     const javascriptKeywords = ['javascript', 'js', 'node'];
     const pythonKeywords = ['python', 'django'];
     const rubyKeywords = ['ruby', 'rails'];
@@ -169,30 +170,38 @@ const categorizeJob = (description) => {
     const goKeywords = ['go', 'golang', 'go lang'];
     const phpKeywords = ['php', 'laravel'];
 
-    const descriptionLower = description.toLowerCase()
-
-    const wordBoundaryCheck = keyword => {
+    const keywordCheck = keyword => {
         const pattern = new RegExp(`\\b${keyword}\\b`, 'i');
-        return pattern.test(descriptionLower);
+        return pattern.test(field);
     };
 
-    if (pythonKeywords.some( wordBoundaryCheck )) {
+    if (pythonKeywords.some( keywordCheck )) {
         return 'python';
-    } else if (rubyKeywords.some( wordBoundaryCheck )) {
+    } else if (rubyKeywords.some( keywordCheck )) {
         return 'ruby';
-    } else if (cSharpKeywords.some( wordBoundaryCheck )) {
+    } else if (cSharpKeywords.some( keywordCheck )) {
         return 'c#';
-    } else if (javaKeywords.some( wordBoundaryCheck )) {
+    } else if (javaKeywords.some( keywordCheck )) {
         return 'java';
-    } else if (goKeywords.some( wordBoundaryCheck )) {
+    } else if (goKeywords.some( keywordCheck )) {
         return 'go';
-    } else if (phpKeywords.some( wordBoundaryCheck )) {
+    } else if (phpKeywords.some( keywordCheck )) {
         return 'php';
-    }else if  (javascriptKeywords.some( wordBoundaryCheck )) {
+    }else if  (javascriptKeywords.some( keywordCheck )) {
         return 'javascript';
-    } else {
-        return 'other';
     }
+}
+
+
+const categorizeJob = (title, description) => {
+
+    const titleLower = title.toLowerCase()
+    const descriptionLower = description.toLowerCase()
+
+    const titleCategory = checkTechKeyword(titleLower)
+    const descriptionCategory = checkTechKeyword(descriptionLower)
+
+    return titleCategory || descriptionCategory || 'other'
 
 }
 
@@ -227,7 +236,7 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                 const description = $jobPage('.description__text .show-more-less-html__markup').html().trim().split('\n').join('')
                 let level = $jobPage('ul.description__job-criteria-list').contents().eq(1).contents().eq(3).text().trim()
                 const link = jobUrl.split('?')[0]
-                const tech = categorizeJob(description)
+                const tech = categorizeJob(title, description)
 
 
                 if(level === 'مستوى المبتدئين'){
@@ -292,7 +301,7 @@ const crawl = async ()=> {
         initialize()
 
         if(fs.existsSync('scraped_url.json')) {
-            console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+            console.log('xxx')
             let data = fs.readFileSync('scraped_url.json', 'utf8')
             scrapedUrls = JSON.parse(data)
     
@@ -300,7 +309,7 @@ const crawl = async ()=> {
             scrapedJobx = JSON.parse(data)
             
     
-            console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+            console.log('xxx')
         }
     
         const newJobs = await scrapeAllLinks()
