@@ -137,7 +137,8 @@ const isBackendJob = (title) => {
     'firmware', 'quality', 'business', 'security',
     'mobile', 'application', 'front', 'full', 'scien', 'vision',
     'machine', 'embedded', 'android', 'ios',
-    'react', 'product', 'devops', 'artificial', 'mobile', 'angular', 'qc', 'design' 
+    'react', 'product', 'devops', 'artificial', 'mobile',
+    'angular', 'qc', 'design', 'recipe', 'environment', ' it ', 'analytic'
     ]
 
     const lowercaseTitle = title.toLowerCase()
@@ -156,6 +157,42 @@ const isDesiredCompany = (company) => {
     const hasNotDesiredKeyword = notDesiredKeywords.some( keyword => lowercaseCompany.includes(keyword))
 
     return !hasNotDesiredKeyword
+
+}
+
+const categorizeJob = (description) => {
+    const javascriptKeywords = ['javascript', 'js', 'node'];
+    const pythonKeywords = ['python', 'django'];
+    const rubyKeywords = ['ruby', 'rails'];
+    const cSharpKeywords = ['c#', 'dotnet', '.net'];
+    const javaKeywords = ['java', 'spring'];
+    const goKeywords = ['go', 'golang', 'go lang'];
+    const phpKeywords = ['php', 'laravel'];
+
+    const descriptionLower = description.toLowerCase()
+
+    const wordBoundaryCheck = keyword => {
+        const pattern = new RegExp(`\\b${keyword}\\b`, 'i');
+        return pattern.test(descriptionLower);
+    };
+
+    if (pythonKeywords.some( wordBoundaryCheck )) {
+        return 'python';
+    } else if (rubyKeywords.some( wordBoundaryCheck )) {
+        return 'ruby';
+    } else if (cSharpKeywords.some( wordBoundaryCheck )) {
+        return 'c#';
+    } else if (javaKeywords.some( wordBoundaryCheck )) {
+        return 'java';
+    } else if (goKeywords.some( wordBoundaryCheck )) {
+        return 'go';
+    } else if (phpKeywords.some( wordBoundaryCheck )) {
+        return 'php';
+    }else if  (javascriptKeywords.some( wordBoundaryCheck )) {
+        return 'javascript';
+    } else {
+        return 'other';
+    }
 
 }
 
@@ -190,6 +227,7 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                 const description = $jobPage('.description__text .show-more-less-html__markup').html().trim().split('\n').join('')
                 let level = $jobPage('ul.description__job-criteria-list').contents().eq(1).contents().eq(3).text().trim()
                 const link = jobUrl.split('?')[0]
+                const tech = categorizeJob(description)
 
 
                 if(level === 'مستوى المبتدئين'){
@@ -213,7 +251,7 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                     email: 'x@gmail.com',
                     website: '',
                     workplace_type: 'other',
-                    tech: 'other',
+                    tech,
                     revised: true
                     
 
