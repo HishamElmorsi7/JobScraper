@@ -142,14 +142,24 @@ const isBackendJob = (title) => {
 
     const lowercaseTitle = title.toLowerCase()
 
-    const hasBackendKeyword = notBackKeywords.some( keyword => lowercaseTitle.includes(keyword))
+    const hasNotBackendKeyword = notBackKeywords.some( keyword => lowercaseTitle.includes(keyword))
 
-    return !hasBackendKeyword
+    return !hasNotBackendKeyword
+
+}
+
+const isDesiredCompany = (company) => {
+    const notDesiredKeywords = ['crossover', 'talent pal', 'canonical'];
+
+    const lowercaseCompany = company.toLowerCase()
+
+    const hasNotDesiredKeyword = notDesiredKeywords.some( keyword => lowercaseCompany.includes(keyword))
+
+    return !hasNotDesiredKeyword
 
 }
 
 
-console.log(isBackendJob('this isfrontend developer'))
 
 const scrapeFromUrls= async (jobsUrls, country) => {
 
@@ -212,7 +222,7 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                 if (title == '' || company == '' || country == '' || description == '' || level == ''){
                     throw new Error('Some field lost')
                 }
-                else if(!isBackendJob(title) || company.toLowerCase().includes('crossover') || company.toLowerCase().includes('talent pal') || company.toLowerCase().includes('canonical') ) {
+                else if(!isBackendJob(title) || !isDesiredCompany(company) ) {
                     notBackendJobs.push(job)
                 }
                 else {
