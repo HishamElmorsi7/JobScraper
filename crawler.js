@@ -138,7 +138,8 @@ const isBackendJob = (title) => {
     'mobile', 'application', 'front', 'full', 'scien', 'vision',
     'machine', 'embedded', 'android', 'ios',
     'react', 'product', 'devops', 'artificial', 'mobile',
-    'angular', 'qc', 'design', 'recipe', 'environment', ' it ', 'analytic'
+    'angular', 'qc', 'design', 'recipe', 'environment', ' it ', 'analytic', 'method', 'simulation',
+    'argumented'
     ]
 
     const lowercaseTitle = title.toLowerCase()
@@ -193,7 +194,7 @@ const checkTechKeyword = (field) => {
 }
 
 
-const categorizeJob = (title, description) => {
+const categorizeJobTech = (title, description) => {
 
     const titleLower = title.toLowerCase()
     const descriptionLower = description.toLowerCase()
@@ -201,7 +202,46 @@ const categorizeJob = (title, description) => {
     const titleCategory = checkTechKeyword(titleLower)
     const descriptionCategory = checkTechKeyword(descriptionLower)
 
-    return titleCategory || descriptionCategory || 'other'
+    return titleCategory || descriptionCategory || '-'
+
+}
+
+const checkLevelKeyword = (field) => {
+    const internKeywords = ['intern', 'internship']
+    const juniorKeywords = ['junior', 'entry-level', 'entry level', 'trainee']
+    const midSeniorKeywords = ['mid-level', 'mid level', 'mid senior', 'mid-senior', 'intermediate']
+    const seniorKeywords = ['senior', 'senior-level']
+    const architectKeywords = ['architect', 'architect-level']
+    const leadKeywords = ['lead', 'team-lead', 'lead-level']
+
+    const keywordCheck = keyword => {
+        const pattern = new RegExp(`\\b${keyword}\\b`, 'i');
+        return pattern.test(field);
+    };
+
+    if (internKeywords.some( keywordCheck )) {
+        return 'intern';
+    } else if (juniorKeywords.some( keywordCheck )) {
+        return 'junior';
+    } else if (midSeniorKeywords.some( keywordCheck )) {
+        return 'mid-senior';
+    } else if (seniorKeywords.some( keywordCheck )) {
+        return 'senior';
+    } else if (architectKeywords.some( keywordCheck )) {
+        return 'architect';
+    } else if (leadKeywords.some( keywordCheck )) {
+        return 'lead';
+    }
+}
+
+const categorizeJobLevel = (title, description) => {
+    const titleLower = title.toLowerCase()
+    const descriptionLower = description.toLowerCase()
+
+    const titleCategory = checkLevelKeyword(titleLower)
+    const descriptionCategory = checkLevelKeyword(descriptionLower)
+
+    return titleCategory || descriptionCategory
 
 }
 
@@ -234,20 +274,38 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                 const company = $jobPage('a.topcard__org-name-link').text().trim();
                 // .html returns null when non existing but text returns ''
                 const description = $jobPage('.description__text .show-more-less-html__markup').html().trim().split('\n').join('')
-                let level = $jobPage('ul.description__job-criteria-list').contents().eq(1).contents().eq(3).text().trim()
                 const link = jobUrl.split('?')[0]
-                const tech = categorizeJob(title, description)
+                const tech = categorizeJobTech(title, description)
 
+                let level = categorizeJobLevel(title, description)
 
-                if(level === 'مستوى المبتدئين'){
-                    level = 'junior'
-                } else if( level === 'مستوى متوسط الأقدمية'){
-                    level = 'mid-level'
-                }  else if(level === 'فترة تدريب'){
-                    level = 'intern'
-                } else if( level === 'غير مطبق'  || level === 'مساعد' || level === '' || level === 'مدير إداري'){
-                    level = 'other'
-                } 
+                if(!level) {
+
+                    level = $jobPage('ul.description__job-criteria-list').contents().eq(1).contents().eq(3).text().trim()
+
+                    if(level === 'مستوى المبتدئين'){
+                        
+                        level = 'junior'
+
+                    } else if( level === 'مستوى متوسط الأقدمية'){
+
+                        level = 'mid-senior'
+
+                    }  else if(level === 'فترة تدريب'){
+
+                        level = 'intern'
+
+                    } else {
+
+                        level = '-'
+
+                    }
+                }
+                
+
+                // else if( level === 'غير مطبق'  || level === 'مساعد' || level === '' || level === 'مدير إداري'){
+                //     level = '-'
+                // } 
 
                 let job = {
 
@@ -259,7 +317,7 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                     application: link,
                     email: 'x@gmail.com',
                     website: '',
-                    workplace_type: 'other',
+                    workplace_type: '-',
                     tech,
                     revised: true
                     
