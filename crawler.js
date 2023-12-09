@@ -24,7 +24,7 @@ const urls = [
         url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=Saudi%20Arabia&locationId=&geoId=100459316&f_TPR=r86400&position=1&pageNum=0'
     },
     {
-        country:'🇦🇪 United Arab Emirates',
+        country:'🇦🇪 Emirates',
         url: 'https://www.linkedin.com/jobs/search?keywords=Back%20End%20Developer&location=United%20Arab%20Emirates&locationId=&geoId=104305776&f_TPR=r86400&position=1&pageNum=0' 
     },
     {
@@ -139,7 +139,8 @@ const isBackendJob = (title) => {
     'machine', 'embedded', 'android', 'ios',
     'react', 'product', 'devops', 'artificial', 'mobile',
     'angular', 'qc', 'design', 'recipe', 'environment', ' it ', 'analytic', 'method', 'simulation',
-    'argumented'
+    'argumented', 'service', 'unity', 'game','ui', 'project', 'testing',
+     ' qa ', 'presales', ' sales ', 'vue', 'plc', ' wan ', 'microsoft', ' ai ', 'ml', 'sharepoint'
     ]
 
     const lowercaseTitle = title.toLowerCase()
@@ -208,9 +209,9 @@ const categorizeJobTech = (title, description) => {
 
 const checkLevelKeyword = (field) => {
     const internKeywords = ['intern', 'internship']
-    const juniorKeywords = ['junior', 'entry-level', 'entry level', 'trainee']
+    const juniorKeywords = ['junior', 'entry-level', 'entry level', 'trainee', 'jr.', 'jr']
     const midSeniorKeywords = ['mid-level', 'mid level', 'mid senior', 'mid-senior', 'intermediate']
-    const seniorKeywords = ['senior', 'senior-level']
+    const seniorKeywords = ['senior', 'senior-level', 'sr', 'sr.']
     const architectKeywords = ['architect', 'architect-level']
     const leadKeywords = ['lead', 'team-lead', 'lead-level']
 
@@ -241,7 +242,7 @@ const categorizeJobLevel = (title, description) => {
     const titleCategory = checkLevelKeyword(titleLower)
     const descriptionCategory = checkLevelKeyword(descriptionLower)
 
-    return titleCategory || descriptionCategory
+    return titleCategory || descriptionCategory || '-'
 
 }
 
@@ -276,33 +277,30 @@ const scrapeFromUrls= async (jobsUrls, country) => {
                 const description = $jobPage('.description__text .show-more-less-html__markup').html().trim().split('\n').join('')
                 const link = jobUrl.split('?')[0]
                 const tech = categorizeJobTech(title, description)
-
                 let level = categorizeJobLevel(title, description)
 
-                if(!level) {
+                // if(!level) {
 
-                    level = $jobPage('ul.description__job-criteria-list').contents().eq(1).contents().eq(3).text().trim()
+                //     level = $jobPage('ul.description__job-criteria-list').contents().eq(1).contents().eq(3).text().trim()
 
-                    if(level === 'مستوى المبتدئين'){
+                //     if(level === 'مستوى المبتدئين'){
                         
-                        level = 'junior'
+                //         level = 'junior'
 
-                    } else if( level === 'مستوى متوسط الأقدمية'){
+                //     } else if( level === 'مستوى متوسط الأقدمية'){
 
-                        level = 'mid-senior'
+                //         level = 'mid-senior'
 
-                    }  else if(level === 'فترة تدريب'){
+                //     }  else if(level === 'فترة تدريب'){
 
-                        level = 'intern'
+                //         level = 'intern'
 
-                    } else {
+                //     } else {
 
-                        level = '-'
+                //         level = '-'
 
-                    }
-                }
-                
-
+                //     }
+                // }
                 // else if( level === 'غير مطبق'  || level === 'مساعد' || level === '' || level === 'مدير إداري'){
                 //     level = '-'
                 // } 
