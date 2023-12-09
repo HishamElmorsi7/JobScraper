@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json())
 
 app.get('/', (req, res) => {
-    res.end('Welcome to Job Scraperx')
+    res.send('Welcome to Job Scraperx')
 })
 app.get('/jobs', async (req, res) => {
     try {
