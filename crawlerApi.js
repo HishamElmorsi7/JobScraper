@@ -12,6 +12,10 @@ app.get('/', (req, res) => {
 app.get('/jobs', async (req, res) => {
     try {
         const jobsData = await crawl()
+        console.log('\n\n\n\n\n\n')
+        console.log(jobsData)
+        console.log('\n\n\n\n\n\n')
+
         res.status(200).json({
             status: 'success',
             data: {
